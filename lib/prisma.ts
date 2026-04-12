@@ -8,9 +8,11 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-const connectionString = process.env.DIRECT_URL;
+// Use the pooler (DATABASE_URL, port 6543) for API route queries — it's designed
+// for serverless environments. DIRECT_URL (port 5432) is for migrations only.
+const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
-  throw new Error("DIRECT_URL environment variable is not set");
+  throw new Error("DATABASE_URL environment variable is not set");
 }
 
 // Log the host on first init so misconfiguration is immediately visible
