@@ -92,16 +92,17 @@ async function getDashboardData() {
 
     const n = scores.length;
 
+    type ScoreRow = (typeof scores)[number];
     const avgScore =
-      n > 0 ? scores.reduce((s: number, d) => s + d.score, 0) / n : 0;
+      n > 0 ? scores.reduce((s: number, d: ScoreRow) => s + d.score, 0) / n : 0;
     const avgHarshBraking =
-      n > 0 ? scores.reduce((s: number, d) => s + d.harshBraking, 0) / n : 0;
+      n > 0 ? scores.reduce((s: number, d: ScoreRow) => s + d.harshBraking, 0) / n : 0;
     const avgHarshAccel =
-      n > 0 ? scores.reduce((s: number, d) => s + d.harshAccel, 0) / n : 0;
+      n > 0 ? scores.reduce((s: number, d: ScoreRow) => s + d.harshAccel, 0) / n : 0;
     const avgSpeeding =
-      n > 0 ? scores.reduce((s: number, d) => s + d.speeding, 0) / n : 0;
+      n > 0 ? scores.reduce((s: number, d: ScoreRow) => s + d.speeding, 0) / n : 0;
     const avgIdleMinutes =
-      n > 0 ? scores.reduce((s: number, d) => s + d.idleMinutes, 0) / n : 0;
+      n > 0 ? scores.reduce((s: number, d: ScoreRow) => s + d.idleMinutes, 0) / n : 0;
 
     // ── Fuel efficiency sub-scores ────────────────────────────────────────────
     // Derived from driving event counts per period. Penalty coefficients are
