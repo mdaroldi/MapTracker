@@ -21,9 +21,17 @@ import "dotenv/config";
 import { PrismaClient } from "../lib/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 const pool = new Pool({ connectionString: process.env.DIRECT_URL });
 const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
+
+// Supabase Admin client — used to create Auth users during seeding
+const supabaseAdmin = createSupabaseClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -142,7 +150,26 @@ async function main() {
       { email: "driver@demo-fleet.com",  orgId: orgBus.id },
     ],
   });
-  console.log("   ✓ Created 3 demo users");
+
+  // Create the same users in Supabase Auth so they can sign in.
+  // Uses upsert (email_confirm: true) so re-running seed doesn't fail on duplicates.
+  const demoAuthUsers = [
+    { email: "admin@demo-fleet.com",   password: "Demo1234!" },
+    { email: "manager@demo-fleet.com", password: "Demo1234!" },
+    { email: "driver@demo-fleet.com",  password: "Demo1234!" },
+  ];
+  for (const u of demoAuthUsers) {
+    const { error } = await supabaseAdmin.auth.admin.createUser({
+      email: u.email,
+      password: u.password,
+      email_confirm: true,
+    });
+    // Ignore "already exists" errors so seed is idempotent
+    if (error && !error.message.includes("already been registered")) {
+      throw new Error(`Failed to create auth user ${u.email}: ${error.message}`);
+    }
+  }
+  console.log("   ✓ Created 3 demo users (DB + Supabase Auth)");
 
   // ── Fleets ────────────────────────────────────────────────────────────────
   const [fleetDE, fleetPL, fleetDK, fleetBusA, fleetBusB] =
