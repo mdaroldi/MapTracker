@@ -385,7 +385,7 @@ export default async function DashboardPage() {
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Top drivers this period
                 </p>
-                {topDrivers.map((d, i) => (
+                {(topDrivers as typeof topDrivers).map((d, i: number) => (
                   <div
                     key={i}
                     className="flex items-center gap-3"
@@ -556,7 +556,7 @@ export default async function DashboardPage() {
                     color: "bg-red-500",
                     text: "text-red-700 dark:text-red-300",
                   },
-                ].map(({ range, label, color, text }) => (
+                ].map(({ range, label, color, text }: { range: string; label: string; color: string; text: string }) => (
                   <div key={range} className="flex items-center gap-3">
                     <div className={cn("size-3 rounded-full", color)} />
                     <span className={cn("text-sm font-medium", text)}>
@@ -588,7 +588,7 @@ export default async function DashboardPage() {
                     name: "Standstill",
                     desc: "Penalises unnecessary idle time — engine on with vehicle stationary. Turn off engine when stopped >2 min.",
                   },
-                ].map(({ name, desc }) => (
+                ].map(({ name, desc }: { name: string; desc: string }) => (
                   <div key={name}>
                     <p className="font-medium">{name}</p>
                     <p className="text-muted-foreground">{desc}</p>
