@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Organisation {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  fleets    Fleet[]
+  users     User[]
+}
+
+model User {
+  id    String       @id @default(uuid())
+  email String       @unique
+  orgId String
+  org   Organisation @relation(fields: [orgId], references: [id])
+}
+
+model Fleet {
+  id       String       @id @default(uuid())
+  name     String
+  orgId    String
+  org      Organisation @relation(fields: [orgId], references: [id])
+  vehicles Vehicle[]
+}
+
+model Vehicle {
+  id           String            @id @default(uuid())
+  registration String            @unique
+  type         String
+  make         String
+  model        String
+  year         Int
+  fleetId      String
+  fleet        Fleet             @relation(fields: [fleetId], references: [id])
+  driverId     String?
+  driver       Driver?           @relation(fields: [driverId], references: [id])
+  positions    Position[]
+  fuelRecords  FuelRecord[]
+  services     ServiceRecord[]
+  schedules    ServiceSchedule[]
+}
+
+model Driver {
+  id       String        @id @default(uuid())
+  name     String
+  licence  String
+  phone    String
+  email    String
+  orgId    String
+  vehicles Vehicle[]
+  scores   DriverScore[]
+}
+
+model Position {
+  id        String   @id @default(uuid())
+  vehicleId String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
+  lat       Float
+  lng       Float
+  heading   Float
+  speedKmh  Float
+  engineOn  Boolean
+  createdAt DateTime @default(now())
+
+  @@index([vehicleId, createdAt])
+}
+
+model FuelRecord {
+  id        String   @id @default(uuid())
+  vehicleId String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
+  litres    Float
+  costEur   Float
+  odometer  Float
+  createdAt DateTime @default(now())
+}
+
+model ServiceRecord {
+  id          String   @id @default(uuid())
+  vehicleId   String
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  description String
+  costEur     Float
+  workshop    String
+  completedAt DateTime
+}
+
+model ServiceSchedule {
+  id          String   @id @default(uuid())
+  vehicleId   String
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  description String
+  dueAt       DateTime
+  dueMileage  Float?
+  done        Boolean  @default(false)
+}
+
+model DriverScore {
+  id           String @id @default(uuid())
+  driverId     String
+  driver       Driver @relation(fields: [driverId], references: [id])
+  period       String
+  score        Float
+  harshBraking Int
+  harshAccel   Int
+  speeding     Int
+  idleMinutes  Int
+}
