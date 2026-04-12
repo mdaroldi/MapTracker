@@ -18,6 +18,17 @@ import {
   WifiOff,
 } from "lucide-react";
 
+// ── Shared types ─────────────────────────────────────────────────────────────
+
+interface TopDriver {
+  score: number;
+  harshBraking: number;
+  harshAccel: number;
+  speeding: number;
+  idleMinutes: number;
+  driver: { name: string };
+}
+
 // ── Data fetching ─────────────────────────────────────────────────────────────
 
 async function getDashboardData() {
@@ -385,7 +396,7 @@ export default async function DashboardPage() {
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Top drivers this period
                 </p>
-                {(topDrivers as typeof topDrivers).map((d, i: number) => (
+                {(topDrivers as TopDriver[]).map((d: TopDriver, i: number) => (
                   <div
                     key={i}
                     className="flex items-center gap-3"

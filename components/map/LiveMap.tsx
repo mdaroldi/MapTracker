@@ -349,7 +349,7 @@ export default function LiveMap() {
           { color: "bg-emerald-500", label: "Moving" },
           { color: "bg-amber-400",  label: "Idle (engine on)" },
           { color: "bg-slate-400",  label: "Offline" },
-        ].map(({ color, label }) => (
+        ].map(({ color, label }: { color: string; label: string }) => (
           <div key={label} className="flex items-center gap-2 py-0.5">
             <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
             <span className="text-xs text-slate-600">{label}</span>

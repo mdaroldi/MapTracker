@@ -42,9 +42,10 @@ export async function GET(): Promise<
       },
     });
 
+    type VehicleRow = (typeof vehicles)[number];
     const data: VehiclePositionData[] = vehicles
-      .filter((v) => v.positions.length > 0)
-      .map((v) => ({
+      .filter((v: VehicleRow) => v.positions.length > 0)
+      .map((v: VehicleRow) => ({
         vehicleId: v.id,
         registration: v.registration,
         type: v.type,
