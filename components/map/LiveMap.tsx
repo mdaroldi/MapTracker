@@ -25,7 +25,6 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import { ScatterplotLayer, TextLayer } from "@deck.gl/layers";
 import { createClient } from "@/lib/supabase/client";
@@ -265,8 +264,10 @@ export default function LiveMap() {
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full overflow-hidden rounded-xl">
 
-      {/* Map canvas */}
-      <div ref={containerRef} className="absolute inset-0" />
+      {/* Map canvas — must have explicit block dimensions so MapLibre reads the
+          correct clientWidth/clientHeight when it initialises the WebGL canvas.
+          absolute inset-0 alone can yield clientHeight=0 in some environments. */}
+      <div ref={containerRef} className="absolute inset-0 w-full h-full" />
 
       {/* ── Top-left status bar ── */}
       <div className="absolute left-3 top-3 z-10 flex items-center gap-2 rounded-lg bg-white/90 px-3 py-2 shadow-md backdrop-blur-sm ring-1 ring-black/5">
