@@ -17,11 +17,9 @@ import { Pool } from "pg";
 
 // ── Database ──────────────────────────────────────────────────────────────────
 
-// Use the direct connection (DIRECT_URL) — the DATABASE_URL pooler string in
-// .env uses a project-specific host that requires the correct regional URL
-// from Supabase Dashboard → Settings → Database → Connection pooling.
-// At 50 vehicles × 1 write/5s the direct connection handles the load fine.
-const pool = new Pool({ connectionString: process.env.DIRECT_URL });
+// Use the pooler (DATABASE_URL, port 6543) — the direct connection (port 5432)
+// is unreachable from some local network configurations due to IPv6 routing.
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 const prisma = new PrismaClient({
   adapter: new PrismaPg(pool),
   log: ["error"],
