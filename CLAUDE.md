@@ -307,9 +307,9 @@ Behaviour:
 - `engineOn` toggles realistically (vehicles stop for 2–5 min occasionally)
 - Runs until killed with Ctrl+C
 
-The simulator can also run as a Vercel Cron Job
-(`app/api/cron/simulate/route.ts`) so positions update automatically
-without a local terminal during a live demo.
+A stateless Vercel Cron endpoint exists at `app/api/cron/simulate/route.ts`
+for Pro plan deployments. On the Hobby plan the per-minute schedule is blocked —
+remove the `crons` block from `vercel.json` and run the simulator locally instead.
 
 ---
 
@@ -442,6 +442,51 @@ Full details in CLAUDE.enterprise.md.
   does not support migrations
 - Vercel hobby tier has a 10-second function timeout — keep API routes fast;
   run heavy seed queries locally, not via API routes
+
+### Map rendering (hard-won lessons)
+
+**MapLibre CSS must be imported globally.** Import `maplibre-gl/dist/maplibre-gl.css`
+in `app/layout.tsx` — not inside the component. CSS inside a `next/dynamic` component
+with `ssr: false` may be omitted from the bundle.
+
+**Give the MapLibre container explicit block dimensions.** The container div must have
+real `clientWidth` / `clientHeight` values when `new maplibregl.Map({ container: el })`
+is called. `absolute inset-0` alone can resolve to `clientHeight = 0` in some
+environments, causing MapLibre to fall back to the 300 px canvas default (the HTML
+`<canvas>` default). Use `className="absolute inset-0 w-full h-full"` on the ref div.
+
+**Call `map.resize()` inside the `load` handler.** The style sometimes loads before
+the browser has finished painting the layout. Calling `map.resize()` inside
+`map.on("load", ...)` forces MapLibre to re-read the container dimensions.
+
+**`flex-1` containers need `min-w-0`.** If the map page is inside a flex layout
+(e.g. sidebar + main), the `<main>` element needs `min-w-0` alongside `flex-1`,
+otherwise flex children collapse to their minimum content width and the map
+container gets a near-zero width.
+
+### Supabase / Prisma connection strings
+
+**Always use `DATABASE_URL` (pooler, port 6543) for application queries.**
+Use `DIRECT_URL` (port 5432) only for `prisma migrate` / `prisma db push`.
+The direct connection is unreachable from Vercel serverless functions and from
+some local network configurations (IPv6 routing). Both `lib/prisma.ts` and
+`scripts/simulate.ts` must use `DATABASE_URL`.
+
+**The seed script must create Supabase Auth users.** `prisma.user.createMany()`
+writes to the application `User` table, but login uses `supabase.auth.signInWithPassword`
+which reads the Supabase Auth schema. Use `supabaseAdmin.auth.admin.createUser()` with
+`email_confirm: true` for every demo account after inserting the DB rows.
+
+### Vercel Hobby plan limits
+
+**Cron jobs are daily-only.** `* * * * *` (per-minute) crons are blocked on the
+Hobby plan. Remove cron config from `vercel.json` and run `pnpm simulate` locally
+during demos. Upgrade to Pro if automated simulation on Vercel is required.
+
+**API routes must not swallow errors.** Catch blocks that return a generic 500
+without logging `err` make production debugging impossible. Always
+`console.error("[route] error:", err)` and include `err.message` in the response
+body during development.
 
 ---
 
