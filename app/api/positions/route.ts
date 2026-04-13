@@ -57,9 +57,11 @@ export async function GET(): Promise<
       }));
 
     return NextResponse.json({ data, error: null });
-  } catch {
+  } catch (err) {
+    console.error("[api/positions] error:", err);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { data: null, error: "Failed to load positions" },
+      { data: null, error: message },
       { status: 500 }
     );
   }
