@@ -1,0 +1,45 @@
+# Regenerates pnpm-lock.yaml when a Snyk PR updates package.json.
+# Without this, Vercel's frozen-lockfile install fails because the lockfile
+# specifiers don't match the manifest.
+name: Sync lockfile on Snyk PRs
+
+on:
+  pull_request:
+    paths:
+      - "package.json"
+    branches:
+      - main
+
+jobs:
+  sync-lockfile:
+    # Only run for PRs opened by Snyk
+    if: startsWith(github.head_ref, 'snyk-') || github.actor == 'snyk-bot'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Regenerate lockfile
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Commit updated lockfile
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml
+          git diff --cached --quiet || git commit -m "chore: sync pnpm-lock.yaml after Snyk dependency update"
+          git push
