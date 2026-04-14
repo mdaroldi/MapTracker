@@ -29,6 +29,7 @@ import { MapboxOverlay } from "@deck.gl/mapbox";
 import { ScatterplotLayer, TextLayer } from "@deck.gl/layers";
 import { createClient } from "@/lib/supabase/client";
 import type { VehiclePositionData } from "@/app/api/positions/route";
+import { dotColor, dotRadius } from "@/lib/vehicle-display";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -44,24 +45,6 @@ interface PositionRow {
   speedKmh: number;
   engineOn: boolean;
   createdAt: string;
-}
-
-// ── Colour helpers ────────────────────────────────────────────────────────────
-
-/**
- * Returns an RGBA tuple for the vehicle dot.
- *   Green  — moving  (engineOn && speedKmh > 1)
- *   Amber  — idling  (engineOn && speedKmh ≤ 1)
- *   Grey   — offline (engine off)
- */
-function dotColor(v: VehiclePositionData): [number, number, number, number] {
-  if (!v.engineOn) return [148, 163, 184, 200];  // slate-400
-  if (v.speedKmh < 1) return [251, 191, 36, 230]; // amber-400
-  return [34, 197, 94, 230];                       // green-500
-}
-
-function dotRadius(v: VehiclePositionData): number {
-  return v.type === "bus" ? 140 : v.type === "van" ? 100 : 160;
 }
 
 // ── Map style ─────────────────────────────────────────────────────────────────

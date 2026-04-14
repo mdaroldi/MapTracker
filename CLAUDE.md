@@ -254,6 +254,15 @@ pnpm db:migrate
 # Seed demo data
 pnpm db:seed
 
+# Run tests (once)
+pnpm test
+
+# Run tests in watch mode
+pnpm test:watch
+
+# Coverage report
+pnpm test:coverage
+
 # Type-check
 pnpm typecheck
 
@@ -352,6 +361,47 @@ Error messages must be user-readable strings — never raw Prisma/PostgreSQL err
 - Tailwind utility classes only — no inline styles, no CSS modules
 - No hardcoded colour hex values — use Tailwind design tokens
 - Mobile-first: mobile styles default, `md:` and `lg:` for larger screens
+
+### Testing (TDD — mandatory)
+
+**Write tests before (or alongside) implementing any new function or feature.**
+The workflow is: write a failing test → implement until it passes → refactor.
+
+**Unit tests are required for every function that contains logic.**
+- Pure helper functions (e.g. colour/radius selectors, formatters, validators) must
+  have a test file in a `__tests__/` directory next to the source file.
+- Test file naming: `<source-name>.test.ts` (or `.test.tsx` for React components).
+- Extract testable logic into standalone functions in `lib/` rather than embedding
+  it directly inside components — components with embedded logic cannot be unit tested.
+
+**Integration tests are required when:**
+- An API route aggregates data from multiple tables (test the handler with a real or
+  mocked database response).
+- A Supabase Realtime subscription changes application state (test the state
+  transition, not the subscription wire-up).
+
+**Testing stack:**
+| Tool | Purpose |
+|---|---|
+| Vitest | Test runner (config: `vitest.config.ts`) |
+| @testing-library/react | Component rendering + queries |
+| @testing-library/user-event | User interaction simulation |
+| jsdom | Browser environment for unit tests |
+
+**Commands:**
+```bash
+pnpm test            # run all tests once (CI)
+pnpm test:watch      # watch mode during development
+pnpm test:coverage   # coverage report (html + terminal)
+```
+
+**Rules:**
+- `pnpm test` must exit 0 before any commit that adds or changes logic.
+- Do not mock the database in integration tests — use the real Supabase pooler
+  or a local PostgreSQL instance. Mocked DB tests mask connection and schema bugs.
+- Do not test implementation details (internal state, private refs). Test behaviour:
+  given this input, what does the function return / what does the UI show?
+- Colocate tests with the source: `lib/foo.ts` → `lib/__tests__/foo.test.ts`.
 
 ---
 
